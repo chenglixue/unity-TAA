@@ -97,15 +97,6 @@ namespace Elysia
 
         [Range(0.0f, 100.0f)]
         public float intensity = 1.0f;
-    
-        public enum ShowRT
-        {
-            ResultRT,
-            HistoryRT,
-            MotionVectorRT
-        }
-
-        public ShowRT showRT = ShowRT.ResultRT;
     }
     
     

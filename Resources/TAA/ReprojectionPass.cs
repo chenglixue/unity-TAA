@@ -95,14 +95,6 @@ namespace Elysia
                     m_reprojectionMaterial, 0);
                 cmd.SetGlobalTexture("_MainTex", m_reprojectionRTIs[m_writeIndex]);
                 cmd.Blit(m_reprojectionRTIs[m_writeIndex], cameraData.renderer.cameraColorTarget, m_reprojectionMaterial, 1);
-                if (m_TAADebugSetting.showRT == TAADebugSetting.ShowRT.HistoryRT)
-                {
-                    cmd.Blit(m_reprojectionRTIs[readIndex], cameraData.renderer.cameraColorTarget);
-                }
-                else if(m_TAADebugSetting.showRT == TAADebugSetting.ShowRT.ResultRT)
-                {
-                    cmd.Blit(m_reprojectionRTIs[m_writeIndex], cameraData.renderer.cameraColorTarget, m_reprojectionMaterial, 1);
-                }
                 
                 cmd.SetRenderTarget(cameraData.renderer.cameraColorTarget, cameraData.renderer.cameraDepthTarget);
             }

@@ -142,7 +142,7 @@ namespace Elysia
                     m_motionVectorMaterial, (int)MotionVectorPassType.StaticObjects);
                 cmd.EndSample("Camera");
 
-                if (m_TAADebugSetting.showRT == TAADebugSetting.ShowRT.MotionVectorRT)
+                if (m_TAADebugSetting.enableDebug)
                 {
                     cmd.Blit(ShaderIDs.m_motionVectorTex, cameraData.renderer.cameraColorTarget);
                 }
