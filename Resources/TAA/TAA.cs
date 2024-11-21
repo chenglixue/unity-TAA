@@ -73,7 +73,8 @@ namespace Elysia
         
         public Jitter.Type m_jitterType = Jitter.Type.Halton23X8;
         public LayerMask m_motionVectorLayerMask;
-        public int m_motionVectorRefValue;
+        [Range(0,255)] public int m_motionVectorRefValue;
+        [Range(0,255)] public int m_maskRefValue;
 
         [Range(0, 1)] 
         public float m_jitterIntensity = 1;

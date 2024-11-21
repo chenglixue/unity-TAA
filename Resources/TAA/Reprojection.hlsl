@@ -7,8 +7,10 @@ float _CurrFrameWeight;
 float _StaticFrameWeight;
 float _DynamiceFrameWeight;
 float _Sharpness;
+int _MaskRefValue;
 
 Texture2D<float2> _MotionVectorTex;
+Texture2D<half> _TAAMaskTex;
 Texture2D<half4> _HistoryFrameTex;
 Texture2D<half4> _CurrFrameTex;
 Texture2D<half4> _MainTex;
@@ -35,6 +37,15 @@ float3 TransformYCoCg2RGB(float3 c)
         c.x + c.z,
         c.x - c.y - c.z
     ));
+}
+half3 MappingColor(half3 color)
+{
+    return TransformRGB2YCoCg(color * rcp(1.0 + Luminance(color)));
+}
+half3 ResolveColor(half3 color)
+{
+    half3 rgb = TransformYCoCg2RGB(color);
+    return rgb * rcp(1.0 - Luminance(rgb));
 }
 
 half3 Unsharp(Texture2D<half4> colorTex, float2 uv, const float2 offsetUV[5])
@@ -220,7 +231,6 @@ void SampleMinMax3x3(Texture2D<half4> tex, float2 uv, float2 duv,
     }
     currColor = colors[4];
 }
-
 void SampleMinMaxCross(Texture2D<half4> tex, float2 uv, float2 duv,
     out half3 minColor, out half3 maxColor, out half3 currColor)
 {
@@ -274,7 +284,7 @@ float GetWeight(float2 motionVector)
 {
     float weight = saturate(length(motionVector));
     
-    float o = lerp(_StaticFrameWeight, _CurrFrameWeight, saturate(weight * _DynamiceFrameWeight * 20));
+    float o = lerp(_StaticFrameWeight, _CurrFrameWeight, weight * _DynamiceFrameWeight);
     o = clamp(o, 0.04f, 1.f);
     return o;
 }

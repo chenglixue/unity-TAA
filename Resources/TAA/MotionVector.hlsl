@@ -7,7 +7,9 @@ float4x4 _Curr_M_VP;
 float4x4 _Curr_I_M_VP;
 float2   _JitterUV;
 int _Ref;
+int _MaskRef;
 half _DebugIntensity;
+Texture2D<float4> _CameraColorTexture;
 
 float4 GetVertexPositionNDC(float4 positionCS)
 {

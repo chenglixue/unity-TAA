@@ -132,5 +132,55 @@ Shader "TAA/S_MotionVector"
 			}
 			ENDHLSL
         }
+
+		Pass
+		{
+			Cull Off
+			ZWrite Off
+			ZTest Always
+			Stencil
+			{
+				Ref [_MaskRef]
+				Comp Equal
+                pass Keep
+			}
+			
+			HLSLPROGRAM
+			#pragma target 4.5
+            #pragma vertex VS
+            #pragma fragment TAAMask
+			
+			struct VSInput
+            {
+                float4 positionOS	: POSITION;
+            	float2 uv			: TEXCOORD0;
+            };
+            struct PSInput
+            {
+                float4 positionCS : SV_POSITION;
+            	float2 uv			: TEXCOORD0;
+            };
+			struct PSOutput
+			{
+			    float4 color : SV_TARGET;
+			};
+			
+
+			PSInput VS(VSInput i)
+			{
+			    PSInput o = (PSInput)0;
+
+			    o.positionCS = mul(UNITY_MATRIX_MVP, float4(i.positionOS.xyz, 1.f));
+
+				o.uv = i.uv;
+
+			    return o;
+			}
+			void TAAMask(PSInput i, out PSOutput o)
+			{
+				o.color.r = 1;
+			}
+			ENDHLSL
+		}
     }
 }

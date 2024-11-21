@@ -74,27 +74,18 @@ namespace Elysia
 
             {
                 var cameraData = renderingData.cameraData;
-                
-                m_reprojectionMaterial.SetVector(ShaderIDs.m_reprojectTexSizeId, new Vector4(m_descriptor.width, m_descriptor.height, 
-                    1.0f / m_descriptor.width, 1.0f / m_descriptor.height ));
-                m_reprojectionMaterial.SetFloat(ShaderIDs.m_currFrameWeightId, m_TAASetting.m_currFrameWeight);
-                m_reprojectionMaterial.SetFloat(ShaderIDs.m_staticFrameWeightId, m_TAASetting.m_staticFrameWeight);
-                m_reprojectionMaterial.SetFloat(ShaderIDs.m_dynamiceFrameWeightId, m_TAASetting.m_dynamiceFrameWeight);
-                m_reprojectionMaterial.SetFloat(ShaderIDs.m_sharpnessId, m_TAASetting.m_sharpness);
-                CoreUtils.SetKeyword(m_reprojectionMaterial, "_TAA_LOW", m_TAASetting.m_TAAQuality == TAAQuality.Low);
-                CoreUtils.SetKeyword(m_reprojectionMaterial, "_TAA_MIDDLE", m_TAASetting.m_TAAQuality == TAAQuality.Middle);
-                CoreUtils.SetKeyword(m_reprojectionMaterial, "_TAA_HIGH", m_TAASetting.m_TAAQuality == TAAQuality.High);
+
+                SetMaterialProperty();
                 
                 int readIndex = m_writeIndex;
                 m_writeIndex = (++m_writeIndex) % 2;
                 cmd.SetGlobalTexture(ShaderIDs.m_historyFrameTexId, m_reprojectionRTIs[readIndex]);
                 cmd.SetGlobalTexture(ShaderIDs.m_currFrameTexId, cameraData.renderer.cameraColorTarget);
 
-                BlitSp(cmd, cameraData.renderer.cameraColorTarget, m_reprojectionRTIs[m_writeIndex],
-                    cameraData.renderer.cameraDepthTarget,
-                    m_reprojectionMaterial, 0);
+                DoTAAGlobal(cmd, ref renderingData);
+                DoTAAMask(cmd, ref renderingData);
                 cmd.SetGlobalTexture("_MainTex", m_reprojectionRTIs[m_writeIndex]);
-                cmd.Blit(m_reprojectionRTIs[m_writeIndex], cameraData.renderer.cameraColorTarget, m_reprojectionMaterial, 1);
+                cmd.Blit(m_reprojectionRTIs[m_writeIndex], cameraData.renderer.cameraColorTarget, m_reprojectionMaterial, 2);
                 
                 cmd.SetRenderTarget(cameraData.renderer.cameraColorTarget, cameraData.renderer.cameraDepthTarget);
             }
@@ -133,6 +124,34 @@ namespace Elysia
             cmd.ClearRenderTarget(false, false, Color.clear);
             cmd.SetViewProjectionMatrices(Matrix4x4.identity,Matrix4x4.identity);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, mat, 0, passIndex, mpb);
+        }
+        
+        void SetMaterialProperty()
+        {
+            m_reprojectionMaterial.SetVector(ShaderIDs.m_reprojectTexSizeId, new Vector4(m_descriptor.width, m_descriptor.height, 
+                1.0f / m_descriptor.width, 1.0f / m_descriptor.height ));
+            m_reprojectionMaterial.SetFloat(ShaderIDs.m_currFrameWeightId, m_TAASetting.m_currFrameWeight);
+            m_reprojectionMaterial.SetFloat(ShaderIDs.m_staticFrameWeightId, m_TAASetting.m_staticFrameWeight);
+            m_reprojectionMaterial.SetFloat(ShaderIDs.m_dynamiceFrameWeightId, m_TAASetting.m_dynamiceFrameWeight);
+            m_reprojectionMaterial.SetFloat(ShaderIDs.m_sharpnessId, m_TAASetting.m_sharpness);
+            m_reprojectionMaterial.SetInt("_MaskRefValue", m_TAASetting.m_maskRefValue);
+            CoreUtils.SetKeyword(m_reprojectionMaterial, "_TAA_LOW", m_TAASetting.m_TAAQuality == TAAQuality.Low);
+            CoreUtils.SetKeyword(m_reprojectionMaterial, "_TAA_MIDDLE", m_TAASetting.m_TAAQuality == TAAQuality.Middle);
+            CoreUtils.SetKeyword(m_reprojectionMaterial, "_TAA_HIGH", m_TAASetting.m_TAAQuality == TAAQuality.High);
+        }
+
+        void DoTAAGlobal(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            BlitSp(cmd, renderingData.cameraData.renderer.cameraColorTarget, m_reprojectionRTIs[m_writeIndex],
+                renderingData.cameraData.renderer.cameraDepthTarget,
+                m_reprojectionMaterial, 0);
+        }
+
+        void DoTAAMask(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            BlitSp(cmd, renderingData.cameraData.renderer.cameraColorTarget, m_reprojectionRTIs[m_writeIndex],
+                renderingData.cameraData.renderer.cameraDepthTarget,
+                m_reprojectionMaterial, 1);
         }
     }   
 }
